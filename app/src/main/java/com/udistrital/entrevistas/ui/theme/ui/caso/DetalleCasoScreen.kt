@@ -1,0 +1,159 @@
+package com.udistrital.entrevistas.ui.theme.ui.caso
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.udistrital.entrevistas.data.local.EstadoCaso
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DetalleCasoScreen(
+    viewModel: CasoDetalleViewModel,
+    onNavigateBack: () -> Unit
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    val formatoFecha = DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.getDefault())
+    val fechaLegible = uiState.fecha.format(formatoFecha)
+
+    var mostrarDialogoEliminar by remember { mutableStateOf(false) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Detalle de la Investigación") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { mostrarDialogoEliminar = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Eliminar caso",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = uiState.titulo, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = "Fecha: $fechaLegible", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "Estado: ${uiState.estado}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(text = uiState.descripcion, style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Conclusión del Caso", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+            OutlinedTextField(
+                value = uiState.conclusion,
+                onValueChange = { viewModel.actualizarCampo(conclusion = it) },
+                label = { Text("Escribe los hallazgos finales...") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp),
+                enabled = uiState.estado != EstadoCaso.CERRADO
+            )
+
+            if (uiState.estado != EstadoCaso.CERRADO) {
+                Button(
+                    onClick = {
+                        viewModel.cerrarCaso(uiState.conclusion)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                ) {
+                    Text("Cerrar Caso Oficialmente")
+                }
+            } else {
+                Text(
+                    text = "Este caso ha sido cerrado y no admite más modificaciones.",
+                    color = MaterialTheme.colorScheme.secondary,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+    }
+
+    if (mostrarDialogoEliminar) {
+        AlertDialog(
+            onDismissRequest = { mostrarDialogoEliminar = false },
+            title = { Text("¿Eliminar caso?") },
+            text = { Text("Esta acción borrará el caso y todas sus entrevistas asociadas. No se puede deshacer.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    mostrarDialogoEliminar = false
+                    viewModel.eliminarCaso()
+                    onNavigateBack()
+                }) {
+                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarDialogoEliminar = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+}

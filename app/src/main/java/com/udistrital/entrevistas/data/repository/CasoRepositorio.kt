@@ -1,4 +1,5 @@
 package com.udistrital.entrevistas.data.repository
+
 import com.udistrital.entrevistas.data.local.AppDatabase
 import com.udistrital.entrevistas.data.local.Caso
 import com.udistrital.entrevistas.data.local.EstadoCaso
@@ -6,8 +7,6 @@ import com.udistrital.entrevistas.domain.ReglasCaso
 import java.time.LocalDate
 
 class CasoRepository(private val db: AppDatabase) {
-    fun buscarCasos(texto: String) = db.casoDao().buscar(texto)
-    fun resumenPorEstado() = db.casoDao().contarPorEstado()
     fun observarCaso(id: Long) = db.casoDao().observar(id)
 
     suspend fun crearCaso(titulo: String, descripcion: String, fecha: LocalDate): Long {
@@ -25,5 +24,5 @@ class CasoRepository(private val db: AppDatabase) {
         db.casoDao().actualizar(caso.copy(estado = EstadoCaso.CERRADO, conclusion = conclusion.trim()))
     }
 
-    suspend fun eliminarCaso(caso: Caso) = db.casoDao().eliminar(caso)
+    suspend fun eliminarCasoPorId(idCaso: Long) = db.casoDao().eliminarCasoPorId(idCaso)
 }

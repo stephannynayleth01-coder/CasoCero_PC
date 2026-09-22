@@ -29,7 +29,7 @@ data class Caso(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id_caso") val idCaso: Long = 0,
     val titulo: String,
     val descripcion: String,
-    val fecha: LocalDate,
+    val fecha: LocalDate= LocalDate.now(),
     val estado: EstadoCaso = EstadoCaso.ABIERTO,
     val conclusion: String? = null
 )
