@@ -13,6 +13,10 @@ import com.udistrital.entrevistas.ui.theme.ui.caso.DetalleCasoScreen
 import com.udistrital.entrevistas.ui.theme.formulario.FormularioCasoScreen
 import com.udistrital.entrevistas.ui.theme.ui.caso.CasoDetalleViewModel
 import com.udistrital.entrevistas.ui.theme.ui.caso.CasoDetalleViewModel.CasoViewModelFactory
+import com.udistrital.entrevistas.ui.lista.ListaScreen
+import com.udistrital.entrevistas.ui.lista.ListaViewModel
+import com.udistrital.entrevistas.ui.resumen.ResumenScreen
+import com.udistrital.entrevistas.ui.resumen.ResumenViewModel
 
 @Composable
 fun NotaVivaNavegacion(
@@ -23,6 +27,25 @@ fun NotaVivaNavegacion(
     NavHost(navController = navController, startDestination = "lista_casos") {
 
         composable("lista_casos") {
+            val viewModel: ListaViewModel = viewModel(
+                factory = ListaViewModel.ListaViewModelFactory(repositorio)
+            )
+            ListaScreen(
+                viewModel = viewModel,
+                onVerCaso = { id -> navController.navigate("detalle_caso/$id") },
+                onCrearCaso = { navController.navigate("formulario_caso/-1") },
+                onVerResumen = { navController.navigate("resumen") }
+            )
+        }
+
+        composable("resumen") {
+            val viewModel: ResumenViewModel = viewModel(
+                factory = ResumenViewModel.ResumenViewModelFactory(repositorio)
+            )
+            ResumenScreen(
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         composable(

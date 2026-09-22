@@ -8,6 +8,8 @@ import java.time.LocalDate
 
 class CasoRepository(private val db: AppDatabase) {
     fun observarCaso(id: Long) = db.casoDao().observar(id)
+    fun buscarCasos(texto: String) = db.casoDao().buscar(texto)
+    fun resumenPorEstado() = db.casoDao().contarPorEstado()
 
     suspend fun crearCaso(titulo: String, descripcion: String, fecha: LocalDate): Long {
         require(ReglasCaso.tituloValido(titulo)) { "El título es obligatorio" }
