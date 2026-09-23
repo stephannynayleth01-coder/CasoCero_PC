@@ -17,6 +17,7 @@ import com.udistrital.entrevistas.data.repository.EntrevistaRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import com.udistrital.entrevistas.data.local.EntrevistaConPersona
 
 data class CasoUiState(
     val id: Long? = null,
@@ -38,7 +39,7 @@ class CasoDetalleViewModel(
     val uiState: StateFlow<CasoUiState> = _uiState.asStateFlow()
 
     private val _idCasoActual = MutableStateFlow<Long?>(null)
-    val entrevistas: StateFlow<List<Entrevista>> = _idCasoActual
+    val entrevistas: StateFlow<List<EntrevistaConPersona>> = _idCasoActual
         .flatMapLatest { id ->
             if (id != null) entrevistaRepositorio.observarEntrevistasDeCaso(id)
             else kotlinx.coroutines.flow.flowOf(emptyList())

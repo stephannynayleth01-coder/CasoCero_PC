@@ -121,12 +121,13 @@ fun DetalleCasoScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             } else {
-                entrevistas.forEach { entrevista ->
+                entrevistas.forEach { item ->
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(12.dp)) {
-                            Text(entrevista.fecha.toString(), style = MaterialTheme.typography.bodySmall)
-                            Text(entrevista.modalidad.name, style = MaterialTheme.typography.bodySmall)
-                            Text(entrevista.hallazgos, style = MaterialTheme.typography.bodyMedium)
+                            Text(item.nombrePersona, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                            Text(item.entrevista.fecha.toString(), style = MaterialTheme.typography.bodySmall)
+                            Text(item.entrevista.modalidad.name, style = MaterialTheme.typography.bodySmall)
+                            Text(item.entrevista.hallazgos, style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }

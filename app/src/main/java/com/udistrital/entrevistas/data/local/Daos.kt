@@ -5,9 +5,15 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import androidx.room.Embedded
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 data class ConteoEstado(val estado: EstadoCaso, val total: Int)
+
+data class EntrevistaConPersona(
+    @Embedded val entrevista: Entrevista,
+    val nombrePersona: String
+)
 
 @Dao
 interface CasoDao {
@@ -39,6 +45,15 @@ interface EntrevistaDao {
 
     @Query("SELECT * FROM entrevista WHERE id_caso = :idCaso ORDER BY fecha DESC")
     fun observarPorCaso(idCaso: Long): Flow<List<Entrevista>>
+
+    @Query("""
+        SELECT entrevista.*, persona.nombre AS nombrePersona
+        FROM entrevista
+        INNER JOIN persona ON entrevista.id_persona = persona.id_persona
+        WHERE entrevista.id_caso = :idCaso
+        ORDER BY entrevista.fecha DESC
+    """)
+    fun observarPorCasoConPersona(idCaso: Long): Flow<List<EntrevistaConPersona>>
 
     @Query("DELETE FROM entrevista WHERE id_entrevista = :idEntrevista")
     suspend fun eliminarEntrevistaPorId(idEntrevista: String): Int
