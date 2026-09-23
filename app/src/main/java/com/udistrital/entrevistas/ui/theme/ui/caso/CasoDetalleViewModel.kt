@@ -18,6 +18,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import com.udistrital.entrevistas.data.local.EntrevistaConPersona
+import com.udistrital.entrevistas.data.local.TipoEvidencia
+import com.udistrital.entrevistas.data.repository.EvidenciaRepository
+import com.udistrital.entrevistas.domain.ReglasCaso
 
 data class CasoUiState(
     val id: Long? = null,
@@ -32,7 +35,8 @@ data class CasoUiState(
 
 class CasoDetalleViewModel(
     private val repositorio: CasoRepository,
-    private val entrevistaRepositorio: EntrevistaRepository
+    private val entrevistaRepositorio: EntrevistaRepository,
+    private val evidenciaRepositorio: EvidenciaRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CasoUiState())
@@ -74,6 +78,8 @@ class CasoDetalleViewModel(
         }
     }
 
+
+
     fun actualizarCampo(
         titulo: String? = null,
         descripcion: String? = null,
@@ -92,11 +98,29 @@ class CasoDetalleViewModel(
         }
     }
 
+    fun observarEvidencias(idEntrevista: String) =
+        evidenciaRepositorio.observarPorEntrevista(idEntrevista)
+
+    fun agregarEvidencia(idEntrevista: String, tipo: TipoEvidencia, url: String) {
+        viewModelScope.launch {
+            try {
+                evidenciaRepositorio.agregarEvidencia(idEntrevista, tipo, url)
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
+            }
+        }
+    }
+
     fun guardarCaso() {
         viewModelScope.launch {
             val estadoActual = _uiState.value
             if (estadoActual.titulo.isBlank() || estadoActual.descripcion.isBlank()) {
                 _uiState.update { it.copy(error = "El título y la descripción son obligatorios") }
+                return@launch
+            }
+
+            if (estadoActual.estado == EstadoCaso.CERRADO && !ReglasCaso.puedeCerrarse(estadoActual.conclusion)) {
+                _uiState.update { it.copy(error = "Para cerrar el caso debes escribir una conclusión") }
                 return@launch
             }
 
@@ -161,11 +185,12 @@ class CasoDetalleViewModel(
     }
 
     class CasoViewModelFactory(private val repositorio: CasoRepository,
-                               private val entrevistaRepositorio: EntrevistaRepository   ) : ViewModelProvider.Factory {
+                               private val entrevistaRepositorio: EntrevistaRepository,
+                               private val evidenciaRepositorio: EvidenciaRepository) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(CasoDetalleViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return CasoDetalleViewModel(repositorio, entrevistaRepositorio) as T
+                return CasoDetalleViewModel(repositorio, entrevistaRepositorio, evidenciaRepositorio) as T
             }
             throw IllegalArgumentException("ViewModel no reconocido")
         }

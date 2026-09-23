@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -45,6 +46,10 @@ import java.util.Locale
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.Add
+import com.udistrital.entrevistas.data.local.TipoEvidencia
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.size
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,6 +67,9 @@ fun DetalleCasoScreen(
     var mostrarDialogoEliminar by remember { mutableStateOf(false) }
 
     val entrevistas by viewModel.entrevistas.collectAsState()
+
+    var mostrarDialogoCierre by remember { mutableStateOf(false) }
+    var textoConclusionCierre by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -128,6 +136,9 @@ fun DetalleCasoScreen(
                             Text(item.entrevista.fecha.toString(), style = MaterialTheme.typography.bodySmall)
                             Text(item.entrevista.modalidad.name, style = MaterialTheme.typography.bodySmall)
                             Text(item.entrevista.hallazgos, style = MaterialTheme.typography.bodyMedium)
+
+                            Spacer(Modifier.height(8.dp))
+                            SeccionEvidencias(idEntrevista = item.entrevista.idEntrevista, viewModel = viewModel)
                         }
                     }
                 }
@@ -168,8 +179,13 @@ fun DetalleCasoScreen(
                         DropdownMenuItem(
                             text = { Text(estadoOpcion.name) },
                             onClick = {
-                                viewModel.actualizarEstado(estadoOpcion)
                                 expandirMenuEstado = false
+                                if (estadoOpcion == EstadoCaso.CERRADO) {
+                                    textoConclusionCierre = uiState.conclusion
+                                    mostrarDialogoCierre = true
+                                } else {
+                                    viewModel.actualizarEstado(estadoOpcion)
+                                }
                             }
                         )
                     }
@@ -217,6 +233,121 @@ fun DetalleCasoScreen(
                 TextButton(onClick = { mostrarDialogoEliminar = false }) {
                     Text("Cancelar")
                 }
+            }
+        )
+    }
+
+    if (mostrarDialogoCierre) {
+        AlertDialog(
+            onDismissRequest = { mostrarDialogoCierre = false },
+            title = { Text("Cerrar caso") },
+            text = {
+                Column {
+                    Text("Para cerrar este caso debes escribir la conclusión final.")
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = textoConclusionCierre,
+                        onValueChange = { textoConclusionCierre = it },
+                        label = { Text("Conclusión") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (textoConclusionCierre.isNotBlank()) {
+                            viewModel.cerrarCaso(textoConclusionCierre)
+                            mostrarDialogoCierre = false
+                        }
+                    }
+                ) { Text("Cerrar caso") }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarDialogoCierre = false }) { Text("Cancelar") }
+            }
+        )
+    }
+
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SeccionEvidencias(idEntrevista: String, viewModel: CasoDetalleViewModel) {
+    val evidenciasFlow = remember(idEntrevista) { viewModel.observarEvidencias(idEntrevista) }
+    val evidencias by evidenciasFlow.collectAsState(initial = emptyList())
+    var mostrarDialogo by remember { mutableStateOf(false) }
+
+    Column {
+        if (evidencias.isNotEmpty()) {
+            Text("Evidencias:", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+            evidencias.forEach { ev ->
+                Text("• ${ev.tipo.name}: ${ev.url}", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+        TextButton(onClick = { mostrarDialogo = true }) {
+            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+            Text(" Agregar evidencia")
+        }
+    }
+
+    if (mostrarDialogo) {
+        var tipoSeleccionado by remember { mutableStateOf(TipoEvidencia.FOTO) }
+        var url by remember { mutableStateOf("") }
+        var menuTipoExpandido by remember { mutableStateOf(false) }
+
+        AlertDialog(
+            onDismissRequest = { mostrarDialogo = false },
+            title = { Text("Nueva evidencia") },
+            text = {
+                Column {
+                    ExposedDropdownMenuBox(
+                        expanded = menuTipoExpandido,
+                        onExpandedChange = { menuTipoExpandido = it }
+                    ) {
+                        OutlinedTextField(
+                            value = tipoSeleccionado.name,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Tipo") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuTipoExpandido) },
+                            modifier = Modifier.fillMaxWidth().menuAnchor()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = menuTipoExpandido,
+                            onDismissRequest = { menuTipoExpandido = false }
+                        ) {
+                            TipoEvidencia.entries.forEach { tipo ->
+                                DropdownMenuItem(
+                                    text = { Text(tipo.name) },
+                                    onClick = {
+                                        tipoSeleccionado = tipo
+                                        menuTipoExpandido = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = url,
+                        onValueChange = { url = it },
+                        label = { Text("URL o ruta del archivo") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (url.isNotBlank()) {
+                        viewModel.agregarEvidencia(idEntrevista, tipoSeleccionado, url)
+                        mostrarDialogo = false
+                    }
+                }) { Text("Guardar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarDialogo = false }) { Text("Cancelar") }
             }
         )
     }

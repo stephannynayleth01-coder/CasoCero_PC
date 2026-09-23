@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import com.udistrital.entrevistas.data.local.AppDatabase
 import com.udistrital.entrevistas.data.repository.CasoRepository
 import com.udistrital.entrevistas.data.repository.EntrevistaRepository
+import com.udistrital.entrevistas.data.repository.EvidenciaRepository
 import com.udistrital.entrevistas.ui.theme.InterviewsTheme
 import com.udistrital.entrevistas.ui.theme.NotaVivaNavegacion
 
@@ -20,6 +21,7 @@ class MainActivity : ComponentActivity() {
         val database = AppDatabase.obtener(this)
         val repositorio = CasoRepository(database)
         val entrevistaRepositorio = EntrevistaRepository(database)
+        val evidenciaRepositorio = EvidenciaRepository(database)
 
         setContent {
             InterviewsTheme {
@@ -28,7 +30,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     NotaVivaNavegacion(repositorio = repositorio,
-                        entrevistaRepositorio = entrevistaRepositorio)
+                        entrevistaRepositorio = entrevistaRepositorio, evidenciaRepositorio)
                 }
             }
         }

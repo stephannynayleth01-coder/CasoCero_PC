@@ -18,6 +18,7 @@ import com.udistrital.entrevistas.ui.lista.ListaViewModel
 import com.udistrital.entrevistas.ui.resumen.ResumenScreen
 import com.udistrital.entrevistas.ui.resumen.ResumenViewModel
 import com.udistrital.entrevistas.data.repository.EntrevistaRepository
+import com.udistrital.entrevistas.data.repository.EvidenciaRepository
 import com.udistrital.entrevistas.ui.entrevista.FormularioEntrevistaScreen
 import com.udistrital.entrevistas.ui.entrevista.FormularioEntrevistaViewModel
 
@@ -26,7 +27,8 @@ import com.udistrital.entrevistas.ui.entrevista.FormularioEntrevistaViewModel
 @Composable
 fun NotaVivaNavegacion(
     repositorio: CasoRepository,
-    entrevistaRepositorio: EntrevistaRepository
+    entrevistaRepositorio: EntrevistaRepository,
+    evidenciaRepositorio: EvidenciaRepository
 ) {
     val navController = rememberNavController()
 
@@ -62,7 +64,7 @@ fun NotaVivaNavegacion(
             val casoId = backStackEntry.arguments?.getLong("casoId") ?: -1L
 
             val viewModel: CasoDetalleViewModel = viewModel(
-                factory = CasoViewModelFactory(repositorio, entrevistaRepositorio)
+                factory = CasoViewModelFactory(repositorio, entrevistaRepositorio,  evidenciaRepositorio)
             )
 
             LaunchedEffect(casoId) {
@@ -84,7 +86,7 @@ fun NotaVivaNavegacion(
             val casoId = backStackEntry.arguments?.getLong("casoId") ?: return@composable
 
             val viewModel: CasoDetalleViewModel = viewModel(
-                factory = CasoViewModelFactory(repositorio, entrevistaRepositorio)
+                factory = CasoViewModelFactory(repositorio, entrevistaRepositorio, evidenciaRepositorio)
             )
 
             LaunchedEffect(casoId) {
