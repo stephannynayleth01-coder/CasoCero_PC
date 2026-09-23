@@ -17,7 +17,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +49,7 @@ fun DetalleCasoScreen(
     viewModel: CasoDetalleViewModel,
     onNavigateBack: () -> Unit
 ) {
+    var expandirMenuEstado by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
 
     val formatoFecha = DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.getDefault())
@@ -89,7 +93,8 @@ fun DetalleCasoScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-            ) {
+            )
+            {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = uiState.titulo, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
@@ -100,8 +105,38 @@ fun DetalleCasoScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Conclusión del Caso", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(text = "Gestión del Caso", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+            ExposedDropdownMenuBox(
+                expanded = expandirMenuEstado,
+                onExpandedChange = { expandirMenuEstado = !expandirMenuEstado }
+            ) {
+                OutlinedTextField(
+                    value = uiState.estado.name, // Muestra el texto del enum
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Estado actual") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandirMenuEstado) },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = expandirMenuEstado,
+                    onDismissRequest = { expandirMenuEstado = false }
+                ) {
+                    // Itera sobre todas las opciones del enum EstadoCaso
+                    EstadoCaso.entries.forEach { estadoOpcion ->
+                        DropdownMenuItem(
+                            text = { Text(estadoOpcion.name) },
+                            onClick = {
+                                viewModel.actualizarEstado(estadoOpcion)
+                                expandirMenuEstado = false
+                            }
+                        )
+                    }
+                }
+            }
 
             OutlinedTextField(
                 value = uiState.conclusion,
@@ -109,28 +144,19 @@ fun DetalleCasoScreen(
                 label = { Text("Escribe los hallazgos finales...") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp),
-                enabled = uiState.estado != EstadoCaso.CERRADO
+                    .height(150.dp)
             )
 
-            if (uiState.estado != EstadoCaso.CERRADO) {
-                Button(
-                    onClick = {
-                        viewModel.cerrarCaso(uiState.conclusion)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
-                ) {
-                    Text("Cerrar Caso Oficialmente")
-                }
-            } else {
-                Text(
-                    text = "Este caso ha sido cerrado y no admite más modificaciones.",
-                    color = MaterialTheme.colorScheme.secondary,
-                    style = MaterialTheme.typography.bodySmall
-                )
+            Button(
+                onClick = {
+                    viewModel.guardarCaso()
+                    onNavigateBack() // Opcional: regresar a la lista tras guardar
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ) {
+                Text("Guardar Cambios del Caso")
             }
         }
     }

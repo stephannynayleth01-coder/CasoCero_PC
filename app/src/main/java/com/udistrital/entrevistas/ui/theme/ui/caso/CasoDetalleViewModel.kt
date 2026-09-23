@@ -153,4 +153,7 @@ class CasoDetalleViewModel(
             throw IllegalArgumentException("ViewModel no reconocido")
         }
     }
+    fun actualizarEstado(nuevoEstado: EstadoCaso) { // Ajusta el nombre del enum según Entidades.kt
+        _uiState.update { it.copy(estado = nuevoEstado) }
+    }
 }
