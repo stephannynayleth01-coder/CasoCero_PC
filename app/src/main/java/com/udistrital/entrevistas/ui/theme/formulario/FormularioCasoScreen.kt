@@ -38,7 +38,6 @@ fun FormularioCasoScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                // El título de la barra cambia dinámicamente si estamos creando o editando
                 title = { Text(if (uiState.id == null) "Nuevo Caso" else "Editar Caso") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
@@ -79,8 +78,6 @@ fun FormularioCasoScreen(
                     .weight(1f), // Se expande para tomar el espacio restante en pantalla
                 isError = uiState.error != null && uiState.descripcion.isBlank()
             )
-
-            // Mensaje de error (si el usuario intenta guardar con campos vacíos)
             if (uiState.error != null) {
                 Text(
                     text = uiState.error!!,

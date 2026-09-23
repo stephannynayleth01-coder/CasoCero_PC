@@ -39,7 +39,6 @@ class FormularioEntrevistaViewModel(
         _uiState.update { it.copy(casoSeleccionado = caso, error = null) }
     }
 
-    // Para cuando se entra desde el detalle de un caso ya identificado
     fun precargarCaso(idCaso: Long) {
         casosDisponibles.value.firstOrNull { it.idCaso == idCaso }?.let { seleccionarCaso(it) }
     }

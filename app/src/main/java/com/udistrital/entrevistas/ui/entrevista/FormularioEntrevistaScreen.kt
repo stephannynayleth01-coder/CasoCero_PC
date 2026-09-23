@@ -61,7 +61,6 @@ fun FormularioEntrevistaScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // --- Selector de caso (lo que pediste) ---
             ExposedDropdownMenuBox(
                 expanded = menuCasoExpandido,
                 onExpandedChange = { menuCasoExpandido = it }
