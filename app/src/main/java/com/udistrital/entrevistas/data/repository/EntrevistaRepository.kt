@@ -11,7 +11,6 @@ import com.udistrital.entrevistas.data.local.EntrevistaConPersona
 
 class EntrevistaRepository(private val db: AppDatabase) {
 
-    // Reutilizamos buscar("") del CasoDao: con texto vacío el LIKE '%%' trae todos los casos
     fun observarCasos(): Flow<List<Caso>> = db.casoDao().buscar("")
 
     fun observarEntrevistasDeCaso(idCaso: Long): Flow<List<EntrevistaConPersona>> =

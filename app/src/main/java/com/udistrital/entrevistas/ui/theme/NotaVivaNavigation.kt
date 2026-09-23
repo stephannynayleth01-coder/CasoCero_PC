@@ -108,8 +108,6 @@ fun NotaVivaNavegacion(
                 factory = FormularioEntrevistaViewModel.Factory(entrevistaRepositorio)
             )
 
-            // Si viene con un caso ya elegido (por ejemplo desde el detalle de un caso),
-            // lo preselecciona apenas cargue la lista de casos.
             LaunchedEffect(casoId) {
                 if (casoId != -1L) {
                     viewModel.casosDisponibles.collect { lista ->
