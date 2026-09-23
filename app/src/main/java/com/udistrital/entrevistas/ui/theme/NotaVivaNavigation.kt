@@ -62,7 +62,7 @@ fun NotaVivaNavegacion(
             val casoId = backStackEntry.arguments?.getLong("casoId") ?: -1L
 
             val viewModel: CasoDetalleViewModel = viewModel(
-                factory = CasoViewModelFactory(repositorio)
+                factory = CasoViewModelFactory(repositorio, entrevistaRepositorio)
             )
 
             LaunchedEffect(casoId) {
@@ -84,7 +84,7 @@ fun NotaVivaNavegacion(
             val casoId = backStackEntry.arguments?.getLong("casoId") ?: return@composable
 
             val viewModel: CasoDetalleViewModel = viewModel(
-                factory = CasoViewModelFactory(repositorio)
+                factory = CasoViewModelFactory(repositorio, entrevistaRepositorio)
             )
 
             LaunchedEffect(casoId) {
@@ -93,7 +93,8 @@ fun NotaVivaNavegacion(
 
             DetalleCasoScreen(
                 viewModel = viewModel,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onAgregarEntrevista = { id -> navController.navigate("formulario_entrevista/$id") }
             )
         }
 

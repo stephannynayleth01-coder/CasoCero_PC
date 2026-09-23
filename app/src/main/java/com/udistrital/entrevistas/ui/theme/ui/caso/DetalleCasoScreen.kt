@@ -42,12 +42,16 @@ import androidx.compose.ui.unit.dp
 import com.udistrital.entrevistas.data.local.EstadoCaso
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.Add
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetalleCasoScreen(
     viewModel: CasoDetalleViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onAgregarEntrevista: (Long) -> Unit
 ) {
     var expandirMenuEstado by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
@@ -56,6 +60,8 @@ fun DetalleCasoScreen(
     val fechaLegible = uiState.fecha.format(formatoFecha)
 
     var mostrarDialogoEliminar by remember { mutableStateOf(false) }
+
+    val entrevistas by viewModel.entrevistas.collectAsState()
 
     Scaffold(
         topBar = {
@@ -94,6 +100,7 @@ fun DetalleCasoScreen(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             )
+
             {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = uiState.titulo, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -104,6 +111,36 @@ fun DetalleCasoScreen(
                     Text(text = uiState.descripcion, style = MaterialTheme.typography.bodyLarge)
                 }
             }
+
+            Text(text = "Entrevistas", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+            if (entrevistas.isEmpty()) {
+                Text(
+                    text = "Aún no hay entrevistas registradas para este caso.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                entrevistas.forEach { entrevista ->
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(12.dp)) {
+                            Text(entrevista.fecha.toString(), style = MaterialTheme.typography.bodySmall)
+                            Text(entrevista.modalidad.name, style = MaterialTheme.typography.bodySmall)
+                            Text(entrevista.hallazgos, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
+            }
+
+            Button(
+                onClick = { onAgregarEntrevista(uiState.id ?: return@Button) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Text(" Agregar entrevista")
+            }
+
+
 
             Text(text = "Gestión del Caso", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 

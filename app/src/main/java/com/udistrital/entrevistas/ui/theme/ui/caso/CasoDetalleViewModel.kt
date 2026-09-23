@@ -12,6 +12,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import com.udistrital.entrevistas.data.local.Entrevista
+import com.udistrital.entrevistas.data.repository.EntrevistaRepository
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 
 data class CasoUiState(
     val id: Long? = null,
@@ -25,13 +30,23 @@ data class CasoUiState(
 )
 
 class CasoDetalleViewModel(
-    private val repositorio: CasoRepository
+    private val repositorio: CasoRepository,
+    private val entrevistaRepositorio: EntrevistaRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CasoUiState())
     val uiState: StateFlow<CasoUiState> = _uiState.asStateFlow()
 
+    private val _idCasoActual = MutableStateFlow<Long?>(null)
+    val entrevistas: StateFlow<List<Entrevista>> = _idCasoActual
+        .flatMapLatest { id ->
+            if (id != null) entrevistaRepositorio.observarEntrevistasDeCaso(id)
+            else kotlinx.coroutines.flow.flowOf(emptyList())
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     fun cargarCaso(casoId: Long) {
+        _idCasoActual.value = casoId
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
@@ -144,11 +159,12 @@ class CasoDetalleViewModel(
         }
     }
 
-    class CasoViewModelFactory(private val repositorio: CasoRepository) : ViewModelProvider.Factory {
+    class CasoViewModelFactory(private val repositorio: CasoRepository,
+                               private val entrevistaRepositorio: EntrevistaRepository   ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(CasoDetalleViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return CasoDetalleViewModel(repositorio) as T
+                return CasoDetalleViewModel(repositorio, entrevistaRepositorio) as T
             }
             throw IllegalArgumentException("ViewModel no reconocido")
         }
