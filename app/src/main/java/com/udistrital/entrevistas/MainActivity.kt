@@ -9,6 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.udistrital.entrevistas.data.local.AppDatabase
 import com.udistrital.entrevistas.data.repository.CasoRepository
+import com.udistrital.entrevistas.data.repository.EntrevistaRepository
 import com.udistrital.entrevistas.ui.theme.InterviewsTheme
 import com.udistrital.entrevistas.ui.theme.NotaVivaNavegacion
 
@@ -18,6 +19,7 @@ class MainActivity : ComponentActivity() {
 
         val database = AppDatabase.obtener(this)
         val repositorio = CasoRepository(database)
+        val entrevistaRepositorio = EntrevistaRepository(database)
 
         setContent {
             InterviewsTheme {
@@ -25,7 +27,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    NotaVivaNavegacion(repositorio = repositorio)
+                    NotaVivaNavegacion(repositorio = repositorio,
+                        entrevistaRepositorio = entrevistaRepositorio)
                 }
             }
         }

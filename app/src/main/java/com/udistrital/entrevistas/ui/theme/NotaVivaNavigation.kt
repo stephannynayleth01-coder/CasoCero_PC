@@ -17,10 +17,16 @@ import com.udistrital.entrevistas.ui.lista.ListaScreen
 import com.udistrital.entrevistas.ui.lista.ListaViewModel
 import com.udistrital.entrevistas.ui.resumen.ResumenScreen
 import com.udistrital.entrevistas.ui.resumen.ResumenViewModel
+import com.udistrital.entrevistas.data.repository.EntrevistaRepository
+import com.udistrital.entrevistas.ui.entrevista.FormularioEntrevistaScreen
+import com.udistrital.entrevistas.ui.entrevista.FormularioEntrevistaViewModel
+
+
 
 @Composable
 fun NotaVivaNavegacion(
-    repositorio: CasoRepository
+    repositorio: CasoRepository,
+    entrevistaRepositorio: EntrevistaRepository
 ) {
     val navController = rememberNavController()
 
@@ -34,7 +40,8 @@ fun NotaVivaNavegacion(
                 viewModel = viewModel,
                 onVerCaso = { id -> navController.navigate("detalle_caso/$id") },
                 onCrearCaso = { navController.navigate("formulario_caso/-1") },
-                onVerResumen = { navController.navigate("resumen") }
+                onVerResumen = { navController.navigate("resumen") },
+                onCrearEntrevista = { navController.navigate("formulario_entrevista/-1") }
             )
         }
 
@@ -90,7 +97,33 @@ fun NotaVivaNavegacion(
             )
         }
 
-        composable("formulario_entrevista/{casoId}") {
+        composable(
+            route = "formulario_entrevista/{casoId}",
+            arguments = listOf(navArgument("casoId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val casoId = backStackEntry.arguments?.getLong("casoId") ?: -1L
+
+            val viewModel: FormularioEntrevistaViewModel = viewModel(
+                factory = FormularioEntrevistaViewModel.Factory(entrevistaRepositorio)
+            )
+
+            // Si viene con un caso ya elegido (por ejemplo desde el detalle de un caso),
+            // lo preselecciona apenas cargue la lista de casos.
+            LaunchedEffect(casoId) {
+                if (casoId != -1L) {
+                    viewModel.casosDisponibles.collect { lista ->
+                        if (lista.isNotEmpty()) {
+                            viewModel.precargarCaso(casoId)
+                            return@collect
+                        }
+                    }
+                }
+            }
+
+            FormularioEntrevistaScreen(
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
         }
     }
-}

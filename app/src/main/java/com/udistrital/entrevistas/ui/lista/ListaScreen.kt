@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.udistrital.entrevistas.data.local.Caso
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.Description
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,7 +36,8 @@ fun ListaScreen(
     viewModel: ListaViewModel,
     onVerCaso: (Long) -> Unit,
     onCrearCaso: () -> Unit,
-    onVerResumen: () -> Unit
+    onVerResumen: () -> Unit,
+    onCrearEntrevista: () -> Unit
 ) {
     val texto by viewModel.texto.collectAsState()
     val casos by viewModel.casos.collectAsState()
@@ -45,6 +47,9 @@ fun ListaScreen(
             TopAppBar(
                 title = { Text("Casos") },
                 actions = {
+                    IconButton(onClick = onCrearEntrevista) {
+                        Icon(Icons.Default.Description, contentDescription = "Agregar entrevista")
+                    }
                     IconButton(onClick = onVerResumen) {
                         Icon(Icons.Default.BarChart, contentDescription = "Ver resumen")
                     }
